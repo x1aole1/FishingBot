@@ -16,7 +16,15 @@ public class EjectionRule {
     private String name = "default";
     private LocationUtils.Direction direction = LocationUtils.Direction.SOUTH;
     private List<String> allowList = new ArrayList<>();
+    private List<String> nbtAllowList = new ArrayList<>();
     private EjectionType ejectionType = EjectionType.DROP;
+
+    public EjectionRule(String name, LocationUtils.Direction direction, List<String> allowList, EjectionType ejectionType) {
+        this.name = name;
+        this.direction = direction;
+        this.allowList = allowList;
+        this.ejectionType = ejectionType;
+    }
 
     @AllArgsConstructor
     @Getter

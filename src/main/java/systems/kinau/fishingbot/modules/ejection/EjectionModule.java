@@ -42,33 +42,36 @@ public class EjectionModule extends Module {
         Player player = FishingBot.getInstance().getCurrentBot().getPlayer();
         String itemName = ItemUtils.getItemName(updatedItem);
         for (EjectionRule ejectionRule : ejectionRules) {
-            if (ejectionRule.getAllowList().contains(itemName)) {
-                switch (ejectionRule.getEjectionType()) {
-                    case FILL_CHEST: {
-                        for (ChestEjectFunction chestEjectFunction : chestEjectFunctions) {
-                            if (chestEjectFunction.getSlot() == slotId)
-                                return;
-                        }
+            List<String> itemAllowList = ejectionRule.getAllowList();
+            if (itemAllowList == null || !itemAllowList.contains(itemName))
+                continue;
+            if (!ItemUtils.matchesNbtFilter(updatedItem, ejectionRule.getNbtAllowList()))
+                continue;
+            switch (ejectionRule.getEjectionType()) {
+                case FILL_CHEST: {
+                    for (ChestEjectFunction chestEjectFunction : chestEjectFunctions) {
+                        if (chestEjectFunction.getSlot() == slotId)
+                            return;
+                    }
 
-                        ChestEjectFunction chestEjectFunction = new ChestEjectFunction(ejectionRule.getDirection(), slotId);
-                        chestEjectFunctions.add(chestEjectFunction);
-                        fillAdjacentChest(chestEjectFunction);
-                        return;
+                    ChestEjectFunction chestEjectFunction = new ChestEjectFunction(ejectionRule.getDirection(), slotId);
+                    chestEjectFunctions.add(chestEjectFunction);
+                    fillAdjacentChest(chestEjectFunction);
+                    return;
+                }
+                case DROP:
+                default: {
+                    for (LookEjectFunction lookEjectFunction : lookEjectFunctions) {
+                        if (lookEjectFunction.getSlot() == slotId)
+                            return;
                     }
-                    case DROP:
-                    default: {
-                        for (LookEjectFunction lookEjectFunction : lookEjectFunctions) {
-                            if (lookEjectFunction.getSlot() == slotId)
-                                return;
-                        }
-                        LocationUtils.Direction direction = ejectionRule.getDirection();
-                        float yaw = direction.getYaw() == Float.MIN_VALUE ? player.getYaw() : direction.getYaw();
-                        float pitch = direction.getPitch() == Float.MIN_VALUE ? player.getPitch() : direction.getPitch();
-                        LookEjectFunction lookEjectFunction = new LookEjectFunction(yaw, pitch, FishingBot.getInstance().getCurrentBot().getConfig().getLookSpeed(), slotId);
-                        lookEjectFunctions.add(lookEjectFunction);
-                        lookAndDrop(lookEjectFunction);
-                        return;
-                    }
+                    LocationUtils.Direction direction = ejectionRule.getDirection();
+                    float yaw = direction.getYaw() == Float.MIN_VALUE ? player.getYaw() : direction.getYaw();
+                    float pitch = direction.getPitch() == Float.MIN_VALUE ? player.getPitch() : direction.getPitch();
+                    LookEjectFunction lookEjectFunction = new LookEjectFunction(yaw, pitch, FishingBot.getInstance().getCurrentBot().getConfig().getLookSpeed(), slotId);
+                    lookEjectFunctions.add(lookEjectFunction);
+                    lookAndDrop(lookEjectFunction);
+                    return;
                 }
             }
         }
