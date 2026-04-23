@@ -14,6 +14,49 @@ There's also a Docker image [available](docker).
 ## How to use
 Visit the Wiki to see detailed instructions ([here](https://github.com/MrKinau/FishingBot/wiki#how-do-i-use-the-bot)).
 
+## Build & test locally
+### Requirements
+- JDK 21
+- Maven 3.9+
+
+### Commands
+- Compile only (skip tests):
+  ```bash
+  mvn -DskipTests compile
+  ```
+- Run tests:
+  ```bash
+  mvn test
+  ```
+- Run full CI-like verification:
+  ```bash
+  mvn verify
+  ```
+
+### Troubleshooting: `repo.maven.apache.org` returns 403
+If your network cannot access Maven Central directly, configure a Maven mirror in `~/.m2/settings.xml` and rerun build/test commands with `-s`.
+
+Example:
+```xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>corp-or-regional-mirror</id>
+      <mirrorOf>central</mirrorOf>
+      <url>https://YOUR_MAVEN_MIRROR/repository/maven-public/</url>
+    </mirror>
+  </mirrors>
+</settings>
+```
+
+Then run:
+```bash
+mvn -s ~/.m2/settings.xml -DskipTests compile
+mvn -s ~/.m2/settings.xml test
+```
+
 ## Commands
 You can use commands in the console with /\<command\> or as another player on the server writing "\<bot username\>, \<command\>" (replace \<bot username\> with the account username of your bot).
 The Command "/help" or "\<bot username\>, help" displays an overview of all commands.
