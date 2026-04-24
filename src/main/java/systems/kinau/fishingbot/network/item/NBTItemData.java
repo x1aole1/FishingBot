@@ -1,6 +1,7 @@
 package systems.kinau.fishingbot.network.item;
 
 import com.google.common.io.ByteArrayDataOutput;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import systems.kinau.fishingbot.FishingBot;
 import systems.kinau.fishingbot.bot.Enchantment;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
+@Getter
 public class NBTItemData implements ItemData {
 
     private final NBTTag nbtData;

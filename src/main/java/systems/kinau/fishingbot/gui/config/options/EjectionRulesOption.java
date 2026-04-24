@@ -27,7 +27,7 @@ public class EjectionRulesOption extends ConfigOption {
         super(configGui, key, description, value);
         this.ejectionRules = new ArrayList<>();
         for (EjectionRule ejectionRule : value) {
-            ejectionRules.add(new EditableEjectionRule(ejectionRule, null, null, null));
+            ejectionRules.add(new EditableEjectionRule(ejectionRule, null, null, null, null));
         }
         this.root = new VBox(5);
         setValue(createValue());
@@ -45,8 +45,8 @@ public class EjectionRulesOption extends ConfigOption {
             inputDialog.setHeaderText(FishingBot.getI18n().t("config-auto-auto-eject-new-rule-name"));
             Optional<String> result = inputDialog.showAndWait();
             result.ifPresent(s -> {
-                EjectionRule ejectionRule = new EjectionRule(s, LocationUtils.Direction.SOUTH, new ArrayList<>(), EjectionRule.EjectionType.DROP);
-                ejectionRules.add(new EditableEjectionRule(ejectionRule, null, null, null));
+                EjectionRule ejectionRule = new EjectionRule(s, LocationUtils.Direction.SOUTH, new ArrayList<>(), new ArrayList<>(), EjectionRule.EjectionType.DROP);
+                ejectionRules.add(new EditableEjectionRule(ejectionRule, null, null, null, null));
                 addRule(ejectionRule, primaryStage, true);
             });
         });
@@ -62,6 +62,7 @@ public class EjectionRulesOption extends ConfigOption {
         EnumConfigOption directionOption = new EnumConfigOption(getConfigGui(), "auto.auto-eject.rules.direction", FishingBot.getI18n().t("config-auto-auto-eject-direction"), ejectionRule.getDirection().name(), LocationUtils.Direction.values());
         EnumConfigOption ejectionType = new EnumConfigOption(getConfigGui(), "auto.auto-eject.rules.ejection-type", FishingBot.getI18n().t("config-auto-auto-eject-ejection-type"), ejectionRule.getEjectionType().name(), EjectionRule.EjectionType.values());
         StringArrayConfigOption allowListOption = new StringArrayConfigOption(getConfigGui(), "auto.auto-eject.rules.list", FishingBot.getI18n().t("config-auto-auto-eject-list"), ejectionRule.getAllowList().toArray(new String[0]), primaryStage);
+        StringArrayConfigOption nbtListOption = new StringArrayConfigOption(getConfigGui(), "auto.auto-eject.rules.nbt-list", FishingBot.getI18n().t("config-auto-auto-eject-nbt-list"), Optional.ofNullable(ejectionRule.getNbtAllowList()).orElse(Collections.emptyList()).toArray(new String[0]), primaryStage);
         Button deleteRule = new Button(FishingBot.getI18n().t("config-auto-auto-eject-delete-rule"));
 
         deleteRule.setOnAction(event -> {
@@ -84,9 +85,10 @@ public class EjectionRulesOption extends ConfigOption {
             editRule.setDirectionOption(directionOption);
             editRule.setEjectionTypeOption(ejectionType);
             editRule.setItemListOption(allowListOption);
+            editRule.setNbtListOption(nbtListOption);
         }
 
-        content.getChildren().addAll(directionOption, ejectionType, allowListOption, deleteRule);
+        content.getChildren().addAll(directionOption, ejectionType, allowListOption, nbtListOption, deleteRule);
 
         root.getChildren().add(root.getChildren().size() - 1, titledPane);
     }
@@ -101,6 +103,8 @@ public class EjectionRulesOption extends ConfigOption {
                 ejectionRule.getEjectionRule().setEjectionType((EjectionRule.EjectionType) ejectionRule.getEjectionTypeOption().getValue());
             if (ejectionRule.getItemListOption() != null)
                 ejectionRule.getEjectionRule().setAllowList(Arrays.asList((String[]) ejectionRule.getItemListOption().getValue()));
+            if (ejectionRule.getNbtListOption() != null)
+                ejectionRule.getEjectionRule().setNbtAllowList(Arrays.asList((String[]) ejectionRule.getNbtListOption().getValue()));
 
             JsonObject ruleObj = new JsonObject();
             ruleObj.addProperty("name", ejectionRule.getEjectionRule().getName());
@@ -108,6 +112,9 @@ public class EjectionRulesOption extends ConfigOption {
             JsonArray allowList = new JsonArray();
             ejectionRule.getEjectionRule().getAllowList().forEach(allowList::add);
             ruleObj.add("allowList", allowList);
+            JsonArray nbtAllowList = new JsonArray();
+            Optional.ofNullable(ejectionRule.getEjectionRule().getNbtAllowList()).orElse(Collections.emptyList()).forEach(nbtAllowList::add);
+            ruleObj.add("nbtAllowList", nbtAllowList);
             ruleObj.addProperty("ejectionType", ejectionRule.getEjectionRule().getEjectionType().name());
             rootArray.add(ruleObj);
         }
@@ -135,6 +142,7 @@ public class EjectionRulesOption extends ConfigOption {
         private EnumConfigOption directionOption;
         private EnumConfigOption ejectionTypeOption;
         private StringArrayConfigOption itemListOption;
+        private StringArrayConfigOption nbtListOption;
     }
 
 }

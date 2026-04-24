@@ -8,7 +8,11 @@ import systems.kinau.fishingbot.bot.Slot;
 import systems.kinau.fishingbot.bot.registry.Registries;
 import systems.kinau.fishingbot.bot.registry.Registry;
 import systems.kinau.fishingbot.bot.registry.legacy.LegacyMaterial;
+import systems.kinau.fishingbot.network.item.ComponentItemData;
+import systems.kinau.fishingbot.network.item.NBTItemData;
+import systems.kinau.fishingbot.network.item.datacomponent.components.NBTComponent;
 import systems.kinau.fishingbot.network.protocol.ProtocolConstants;
+import systems.kinau.fishingbot.utils.nbt.NBTTag;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -132,6 +136,42 @@ public class ItemUtils {
         } else {
             return Registries.ITEM.getItemName(slot.getItemId(), version).replace("minecraft:", "");
         }
+    }
+
+    public static boolean matchesNbtFilter(Slot slot, List<String> nbtAllowList) {
+        if (nbtAllowList == null || nbtAllowList.isEmpty())
+            return true;
+        if (slot == null || !slot.isPresent() || slot.getItemData() == null)
+            return false;
+
+        List<String> nbtCandidates = new ArrayList<>();
+        if (slot.getItemData() instanceof NBTItemData) {
+            NBTTag legacyTag = ((NBTItemData) slot.getItemData()).getNbtData();
+            if (legacyTag != null && legacyTag.getTag() != null) {
+                nbtCandidates.add(legacyTag.getTag().toJson().toString().toLowerCase(Locale.ROOT));
+            }
+        } else if (slot.getItemData() instanceof ComponentItemData) {
+            ComponentItemData componentItemData = (ComponentItemData) slot.getItemData();
+            componentItemData.getPresentComponents().stream()
+                    .filter(dataComponent -> dataComponent instanceof NBTComponent)
+                    .map(dataComponent -> (NBTComponent) dataComponent)
+                    .map(NBTComponent::getTag)
+                    .filter(Objects::nonNull)
+                    .map(NBTTag::getTag)
+                    .filter(Objects::nonNull)
+                    .forEach(tag -> nbtCandidates.add(tag.toJson().toString().toLowerCase(Locale.ROOT)));
+        }
+
+        if (nbtCandidates.isEmpty())
+            return false;
+        for (String filter : nbtAllowList) {
+            if (filter == null || filter.trim().isEmpty())
+                continue;
+            String loweredFilter = filter.toLowerCase(Locale.ROOT);
+            if (nbtCandidates.stream().anyMatch(candidate -> candidate.contains(loweredFilter)))
+                return true;
+        }
+        return false;
     }
 
     public static String getImageURL(Item item) {
